@@ -39,7 +39,9 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-
+    - name: lowercase github.repository
+      run: |
+          echo "IMAGE_NAME=`echo ${{github.repository}} | tr '[:upper:]' '[:lower:]'`" >>${GITHUB_ENV}
     - name: Build Odoo image
       uses: docker/build-push-action@v5
       with:
@@ -48,14 +50,14 @@ jobs:
         target: odoo
         build-args: |
           ODOO_VERSION=${{ env.ODOO_VERSION }}
-        tags: ghcr.io/${{ github.repository }}:${{ env.ODOO_VERSION }}
+        tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ env.ODOO_VERSION }}
         load: true
         push: false
 
     - name: Run Odoo image
       run: |
         cat > Dockerfile.test <<EOF
-        FROM ghcr.io/${{ github.repository }}:${{ env.ODOO_VERSION }} as odoo
+        FROM ghcr.io/${{ env.IMAGE_NAME }}:${{ env.ODOO_VERSION }} as odoo
         EOF
         DOCKERFILE=Dockerfile.test docker compose -f docker-compose.yaml -f docker-compose.test.yaml run --rm odoo odoo-update base --install
 
@@ -67,7 +69,7 @@ jobs:
         target: odoo
         build-args: |
           ODOO_VERSION=${{ env.ODOO_VERSION }}
-        tags: ghcr.io/${{ github.repository }}:${{ env.ODOO_VERSION }}
+        tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ env.ODOO_VERSION }}
         push: ${{ github.event_name != 'pull_request' }}
 
     - name: Publish Odoo dev image
@@ -78,5 +80,5 @@ jobs:
         target: odoodev
         build-args: |
           ODOO_VERSION=${{ env.ODOO_VERSION }}
-        tags: ghcr.io/${{ github.repository }}:${{ env.ODOO_VERSION }}-dev
+        tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ env.ODOO_VERSION }}-dev
         push: ${{ github.event_name != 'pull_request' }}
