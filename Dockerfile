@@ -40,7 +40,8 @@ run curl -o wkhtmltox.deb -sSL https://nightly.odoo.com/deb/jammy/wkhtmltox_0.12
 
 from system as base
 # Install/Clone Odoo
-arg ODOO_SOURCE=https://github.com/odoo
+arg ODOO_SOURCE=https://github.com/ERPM-BV
+arg OCA_SOURCE=https://github.com/OCA
 # arg ODOO_SOURCE=git@github.com:odoo
 arg ODOO_VERSION=master
 arg ODOO_DATA_DIR=/var/lib/odoo
@@ -65,13 +66,14 @@ run pip install --prefix=/usr --no-cache-dir --upgrade \
 # /mnt/extra-addons for users addons
 env ODOO_RC /etc/odoo/odoo.conf
 env ODOO_BASE_ADDONS=/opt/odoo-addons
+env OCA_ADDONS=/opt/oca-addons
 env ODOO_EXTRA_ADDONS=/mnt/extra-addons
 env PYTHON_DIST_PACKAGES=/usr/lib/python3/dist-packages
 run mkdir -p /etc/odoo \
-    && mkdir -p "${ODOO_BASE_ADDONS}" "${ODOO_EXTRA_ADDONS}" "${ODOO_DATA_DIR}" \
+    && mkdir -p "${ODOO_BASE_ADDONS}" "${ODOO_EXTRA_ADDONS}" "${ODOO_DATA_DIR}" "${OCA_ADDONS}"\
 	&& useradd --system --no-create-home --home-dir "${ODOO_DATA_DIR}" --shell /bin/bash odoo \
     && userdel ubuntu \
-    && chown -R odoo:odoo /etc/odoo "${ODOO_BASE_ADDONS}" "${ODOO_EXTRA_ADDONS}" "${ODOO_DATA_DIR}" \
+    && chown -R odoo:odoo /etc/odoo "${ODOO_BASE_ADDONS}" "${ODOO_EXTRA_ADDONS}" "${ODOO_DATA_DIR}" "${OCA_ADDONS}"\
     && chmod 775 /etc/odoo "${ODOO_DATA_DIR}" \
     && echo "${ODOO_BASEPATH}" > "$PYTHON_DIST_PACKAGES/odoo.pth" \
     && ln -s "${ODOO_BASEPATH}/odoo-bin" /usr/bin/odoo-bin
@@ -124,7 +126,46 @@ run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ODOO_
     ${ODOO_BASE_ADDONS}/odoo-themes && rm -rf ${ODOO_BASE_ADDONS}/odoo-themes/.git
 
 # Clone Odoo enterprise sources
-run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ODOO_SOURCE/enterprise.git \
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ODOO_SOURCE/odoo-enterprise.git \
     ${ODOO_BASE_ADDONS}/enterprise && rm -rf ${ODOO_BASE_ADDONS}/enterprise/.git
 
 user odoo
+
+env PIP_BREAK_SYSTEM_PACKAGES=1
+user odoo
+
+###############################
+# OCA
+from odoo as oca
+user root
+
+# Clone Odoo themes
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/partner-contact.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/partner-contact/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/product-attribute.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/product-attribute/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/web.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/web/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/social.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/social/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/server-tools.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/server-tools/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/server-ux.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/server-ux/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/server-backend.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/server-backend/.git
+
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $OCA_SOURCE/l10n-netherlands.git \
+    ${OCA_ADDONS}/partner-contact/ && rm -rf ${OCA_ADDONS}/l10n-netherlands/.git
+user odoo
+
+env PIP_BREAK_SYSTEM_PACKAGES=1
+user odoo
+
+
