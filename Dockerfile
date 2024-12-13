@@ -40,9 +40,9 @@ run curl -o wkhtmltox.deb -sSL https://nightly.odoo.com/deb/jammy/wkhtmltox_0.12
 
 from system as base
 # Install/Clone Odoo
-arg ODOO_SOURCE=https://github.com/ERPM-BV
+arg ERPM_SOURCE=https://github.com/ERPM-BV
 arg OCA_SOURCE=https://github.com/OCA
-# arg ODOO_SOURCE=git@github.com:odoo
+arg ODOO_SOURCE=git@github.com:odoo
 arg ODOO_VERSION=master
 arg ODOO_DATA_DIR=/var/lib/odoo
 env ODOO_VERSION=${ODOO_VERSION}
@@ -126,7 +126,7 @@ run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ODOO_
     ${ODOO_BASE_ADDONS}/odoo-themes && rm -rf ${ODOO_BASE_ADDONS}/odoo-themes/.git
 
 # Clone Odoo enterprise sources
-run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ODOO_SOURCE/odoo-enterprise.git \
+run --mount=type=ssh git clone --quiet --depth 1 "--branch=$ODOO_VERSION" $ERPM_SOURCE/odoo-enterprise.git \
     ${ODOO_BASE_ADDONS}/enterprise && rm -rf ${ODOO_BASE_ADDONS}/enterprise/.git
 
 user odoo
